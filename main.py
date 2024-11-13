@@ -3,6 +3,7 @@ import os
 
 # modules
 import Reader
+import LexicalAnalyzer
 
 if __name__ == '__main__':
     # get the current directory of the script + relative path
@@ -11,3 +12,7 @@ if __name__ == '__main__':
     abs_file_path = os.path.join(script_dir, rel_path)
 
     file = Reader.Reader(abs_file_path).read()
+    
+    for out in LexicalAnalyzer.LexicalAnalyzer().gen_tokens(file):
+        print(out)
+    
