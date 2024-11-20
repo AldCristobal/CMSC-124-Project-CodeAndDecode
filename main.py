@@ -22,17 +22,17 @@ class LexicalAnalyzer:
         self.lin_num = 1
         self.lin_start = 0
         self.rules = [
-            ("START", r"^HAI"),
-            ("END", r"KTHXBYE$"),
+            ("START", r"HAI"),
+            ("END", r"KTHXBYE"),
             ("VAR_INIT_START", r"WAZZUP"),
             ("VAR_INIT_END", r"BUHBYE"),
-            ("COMMENT", r"BTW"),
+            ("COMMENT_START", r"BTW"),
             ("MULTILINE_COMMENT_START", r"OBTW"),
             ("MULTILINE_COMMENT_END", r"TLDR"),
             ("VAR_INIT", r"I HAS A"),
             ("VAR_INIT_VALUE", r"ITZ"),
             ("ASSIGNMENT", r"R"),
-            ("MATH_OPERATOR", r"SUM OF|DIFF OF|PRODUKT OF|QUOSHUNT OF|MOD OF|BIGGR OF|SMALLR OF"),
+            ("ARITHMETIC_OPERATOR", r"SUM OF|DIFF OF|PRODUKT OF|QUOSHUNT OF|MOD OF|BIGGR OF|SMALLR OF"),
             ("BOOL_OPERATOR", r"BOTH OF|EITHER OF|WON OF|BOTH SAEM|DIFFRINT|NOT|ALL OF|ANY OF"),
             ("CONCAT", r"SMOOSH"),
             ("TYPECAST", r"MAEK"),
@@ -78,19 +78,50 @@ class LexicalAnalyzer:
         
         token_rules = "|".join(f"(?P<{x[0]}>{x[1]})" for x in self.rules)
 
+        comment_bool = False
+        multi_comment_bool = False
+        comment = ""
+        comment_column = 0
+
         for m in re.finditer(token_rules, code):
             token_type = m.lastgroup
             token_lexeme = m.group(token_type)
 
             if token_type == "NEWLINE":
+                if comment_bool:
+                    if not multi_comment_bool:
+                        comment_bool = False
+                    col = m.start() - self.lin_start
+                    self.columns.append(comment_column)
+                    self.tokens.append("COMMENT")	
+                    self.lexemes.append(comment)
+                    self.rows.append(self.lin_num)
+                    comment = ""
+                    comment_column = 0
+
                 self.lin_start = m.end()
                 self.lin_num += 1
+            elif token_type == "MULTILINE_COMMENT_END":
+                comment_bool = False
+            elif comment_bool:
+                comment += token_lexeme
+            elif token_type == "COMMENT_START" or token_type == "MULTILINE_COMMENT_START":
+                comment_bool = True
+                
+                col = m.start() - self.lin_start
+                comment_column = col+1
+
+                self.columns.append(col)
+                self.tokens.append(token_type)
+                self.lexemes.append(token_lexeme)
+                self.rows.append(self.lin_num)
             elif token_type in ("TAB", "WHITESPACE"):
                 continue
             elif token_type == "UNRECOGNIZED":
                 error = f"ERROR: {token_lexeme[0]} unexpected on line {self.lin_num}"
                 return False, error, False, False
             else:
+                
                 col = m.start() - self.lin_start
                 self.columns.append(col)
                 self.tokens.append(token_type)
