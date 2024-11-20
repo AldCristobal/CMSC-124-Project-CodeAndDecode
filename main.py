@@ -103,7 +103,7 @@ class LexicalAnalyzer:
                 col = m.start() - self.lin_start
                 self.columns.append(col)
                 self.tokens.append(token_type)
-                self.lexemes.append(token_lexeme)
+                self.lexemes.append("\\n")
                 self.rows.append(self.lin_num)
                 self.lin_start = m.end()
                 self.lin_num += 1
