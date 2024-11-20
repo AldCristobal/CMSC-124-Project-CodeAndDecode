@@ -145,6 +145,17 @@ class LexicalAnalyzer:
         # print(self.tokens)
         return self.tokens, self.lexemes, self.rows, self.columns
 
+class SyntaxAnalyzer:
+    def __init__(self):
+        self.tokens = []
+        self.rows = []
+        self.columns = []
+        self.lin_num = 1
+        self.lin_start = 0
+        self.rules = []
+
+    def check_syntax(self, tokens, rows, columns):
+        print(tokens)
 
 class CMSC124Project:
     def __init__(self, root):
@@ -192,6 +203,8 @@ class CMSC124Project:
                 output += f"Token: {token}, Lexeme: '{lexeme}', Row: {row}, Column: {col}\n"
 
             self.display_output(output)
+
+            SyntaxAnalyzer().check_syntax(tokens, rows, columns)
 
     def display_output(self, output):
         self.output_text.config(state=tk.NORMAL)
