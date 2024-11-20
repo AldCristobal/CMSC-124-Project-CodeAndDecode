@@ -154,9 +154,9 @@ class SyntaxAnalyzer:
         self.grammar = []
 
     def check_syntax(self, tokens, rows, columns):
-        print(self.preprocess(tokens))
+        print(self.group_tokens(tokens))
 
-    def preprocess(self, tokens):
+    def group_tokens(self, tokens):
         grouped_tokens = []
         group = []
         for i in range(len(tokens)):
@@ -166,6 +166,8 @@ class SyntaxAnalyzer:
                     group = []
             else:
                 group.append(tokens[i])
+        if group:
+            grouped_tokens.append(group)
         return grouped_tokens
 
 class CMSC124Project:
