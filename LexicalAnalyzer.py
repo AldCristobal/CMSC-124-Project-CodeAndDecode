@@ -9,8 +9,8 @@ class LexicalAnalyzer:
         self.lin_num = 1
         self.lin_start = 0
         self.rules = [
-            ("START", r"^HAI"),
-            ("END", r"KTHXBYE$"),
+            ("START", r"HAI"),
+            ("END", r"KTHXBYE"),
             ("VAR_INIT_START", r"WAZZUP"),
             ("VAR_INIT_END", r"BUHBYE"),
             ("COMMENT", r"BTW"),
