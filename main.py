@@ -12,7 +12,6 @@ class Reader:
         with open(self.path, 'r') as file:
             return file.read()
 
-
 class LexicalAnalyzer:
     def __init__(self):
         self.tokens = []
@@ -136,7 +135,7 @@ class LexicalAnalyzer:
             #     error = f"ERROR: {token_lexeme[0]} unexpected on line {self.lin_num}"
             #     return False, error, False, False
             else:
-                
+    
                 col = m.start() - self.lin_start
                 self.columns.append(col)
                 self.tokens.append(token_type)
@@ -152,10 +151,22 @@ class SyntaxAnalyzer:
         self.columns = []
         self.lin_num = 1
         self.lin_start = 0
-        self.rules = []
+        self.grammar = []
 
     def check_syntax(self, tokens, rows, columns):
-        print(tokens)
+        print(self.preprocess(tokens))
+
+    def preprocess(self, tokens):
+        grouped_tokens = []
+        group = []
+        for i in range(len(tokens)):
+            if tokens[i] == "NEWLINE":
+                if group:
+                    grouped_tokens.append(group)
+                    group = []
+            else:
+                group.append(tokens[i])
+        return grouped_tokens
 
 class CMSC124Project:
     def __init__(self, root):
