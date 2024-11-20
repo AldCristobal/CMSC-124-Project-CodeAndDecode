@@ -101,7 +101,11 @@ class LexicalAnalyzer:
                         self.rows.append(self.lin_num)
                         comment = ""
                         comment_column = 0
-
+                col = m.start() - self.lin_start
+                self.columns.append(col)
+                self.tokens.append(token_type)
+                self.lexemes.append(token_lexeme)
+                self.rows.append(self.lin_num)
                 self.lin_start = m.end()
                 self.lin_num += 1
             elif token_type == "MULTILINE_COMMENT_END":
