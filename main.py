@@ -146,29 +146,75 @@ class LexicalAnalyzer:
 
 class SyntaxAnalyzer:
     def __init__(self):
-        self.tokens = []
+        # self.tokens = []
         self.rows = []
         self.columns = []
-        self.lin_num = 1
-        self.lin_start = 0
-        self.grammar = []
+        self.index = 0
+        # self.grammar = []
+        self.comment_tokens = ["COMMENT_START", "MULTILINE_COMMENT_START", "COMMENT", "MULTILINE_COMMENT_END", "NEWLINE"]	
 
     def check_syntax(self, tokens, rows, columns):
-        print(self.group_tokens(tokens))
+        # print(self.group_tokens(tokens))
+        # print(tokens)
+        self.rows = rows
+        self.columns = columns
+        err_code, grouped_tokens = self.check_start_end(tokens)
+        if err_code:
+            return err_code, print(grouped_tokens)
+        print(grouped_tokens)
 
-    def group_tokens(self, tokens):
+
+        
+    def check_start_end(self, tokens):
         grouped_tokens = []
         group = []
-        for i in range(len(tokens)):
-            if tokens[i] == "NEWLINE":
-                if group:
+        start = False
+        end = False
+        self.index = 0
+        while self.index in range(len(tokens)):
+            token = tokens[self.index]
+            if start:
+                if end:
+                    if token in self.comment_tokens:
+                        grouped_tokens.append(token)
+                    else:
+                        return 1, f"ERROR: Unexpected {token} on line {self.rows[self.index]}"
+                elif token == "END":
+                    end = True
                     grouped_tokens.append(group)
                     group = []
+                    grouped_tokens.append(token)
+                else:
+                    group.append(token)
             else:
-                group.append(tokens[i])
-        if group:
-            grouped_tokens.append(group)
-        return grouped_tokens
+                if token == "START":
+                    start = True
+                    grouped_tokens.append(token)
+                    if tokens[self.index+1] == "NEWLINE":
+                        self.index += 1
+                    else:
+                        return 1, f"ERROR: Unexpected {tokens[self.index+1]} on line {self.rows[self.index+1]}"
+                elif token in self.comment_tokens:
+                    grouped_tokens.append(token)
+                else:
+                    return 1, f"ERROR: Unexpected {token} on line {self.rows[self.index]}"        
+            self.index += 1
+        return 0, grouped_tokens
+            
+                
+    # def group_tokens(self, tokens):
+    #     grouped_tokens = []
+    #     group = []
+    #     for i in range(len(tokens)):
+    #         if tokens[i] == "NEWLINE":
+    #             if group:
+    #                 grouped_tokens.append(group)
+    #                 group = []
+    #         else:
+    #             group.append(tokens[i])
+    #     if group:
+    #         grouped_tokens.append(group)
+    #     return grouped_tokens
 
 class CMSC124Project:
     def __init__(self, root):
