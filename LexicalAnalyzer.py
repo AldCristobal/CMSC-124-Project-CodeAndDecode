@@ -9,7 +9,7 @@ class LexicalAnalyzer:
         self.lin_num = 1
         self.lin_start = 0
 
-        # Classifications using lists of token names
+        # Tokens' higher level classifications
         self.token_classifications = {
             "Code Delimiter": ["START", "END"],
             "Var. Dec. List Delimiter": ["VAR_INIT_START", "VAR_INIT_END"],
@@ -34,7 +34,7 @@ class LexicalAnalyzer:
             "Unrecognized": ["UNRECOGNIZED"]
         }
 
-        # Token recognition patterns
+        # Token lower level classifications
         self.rules = [
             ("START", r"HAI"),
             ("END", r"KTHXBYE"),
@@ -137,7 +137,6 @@ class LexicalAnalyzer:
                 self.rows.append(self.lin_num)
             elif token_type not in ("TAB", "WHITESPACE"):
                 self.columns.append(col)
-                # Classify the token type by looking up in the lists
                 classification = next((key for key, value in self.token_classifications.items() if token_type in value), "Unclassified")
                 self.tokens.append(classification)
                 self.lexemes.append(token_lexeme)
