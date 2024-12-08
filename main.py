@@ -382,9 +382,11 @@ class CMSC124Project:
             file = Reader(file_path).read()
             tokens, lexemes, rows, columns = LexicalAnalyzer().gen_tokens(file)
 
-            output = ""
+            output = "LEXEME : CLASSIFICATION\n"
             for token, lexeme, row, col in zip(tokens, lexemes, rows, columns):
-                output += f"Token: {token}, Lexeme: '{lexeme}', Row: {row}, Column: {col}\n"
+                if token != 'COMMENT_START' and token != 'COMMENT' and token != 'NEWLINE':
+                    # output += f"Lexeme: '{lexeme}' Classification: {token} | Row: {row}, Column: {col} \n"
+                    output += f"{lexeme} : {token}\n"
 
             self.display_output(output)
 
