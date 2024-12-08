@@ -5,6 +5,7 @@ class SyntaxAnalyzer:
         self.types = [list(token.values())[0] for token in token_list]
         self.index = 0
         self.ast = []  # This will hold the abstract syntax tree (AST) or statement list
+        self.console = []  # This will hold the console output
 
     def current_token(self):
         """Get the current token."""
@@ -167,5 +168,6 @@ class SyntaxAnalyzer:
             print("Syntax analysis completed successfully!")
             return self.ast
         except SyntaxError as e:
+            self.console.append(f"Syntax error: {e}")
             print(f"Syntax error: {e}")
             return None

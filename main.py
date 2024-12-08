@@ -179,6 +179,11 @@ class CMSC124Project:
                 self.console_text.insert(tk.END, "Syntax analysis failed.\n")
                 self.console_text.config(state=tk.DISABLED)
 
+            for console_output in syntax_analyzer.console:
+                self.console_text.config(state=tk.NORMAL)
+                self.console_text.insert(tk.END, console_output)
+                self.console_text.config(state=tk.DISABLED)
+
         else:
             self.console_text.config(state=tk.NORMAL)
             self.console_text.delete(1.0, tk.END)
