@@ -20,11 +20,10 @@ class CMSC124Project:
         self.root = root
         self.root.title("CMSC 124 Project: LOLCode Interpreter")
 
-        # Set fixed window size
         self.root.geometry("1000x750")
         self.root.resizable(True, True)  
 
-        self.file_path = None  # Initialize file path as None
+        self.file_path = None  
 
         self.create_widgets()
 
@@ -42,12 +41,12 @@ class CMSC124Project:
         self.import_button = tk.Button(self.root, text="File Explorer", font=('Georgia', 12, 'bold'), command=self.select_file)
         self.import_button.pack(side=tk.TOP, padx=10, pady=5)
 
-        # Create a style object for the Treeview
+        # Create Style for the Treeview
         style = ttk.Style()
-        style.configure("Treeview.Heading", font=("Georgia", 10, "bold"))  # Set font for column headers
-        style.configure("Treeview", font=("Verdana", 10))  # Set font for Treeview content
+        style.configure("Treeview.Heading", font=("Georgia", 10, "bold"))  
+        style.configure("Treeview", font=("Verdana", 10))  
 
-        # Main Frame (Text Editor and Token Tables)
+        # Main Frame
         main_frame = tk.Frame(self.root)
         main_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -56,9 +55,9 @@ class CMSC124Project:
         main_frame.columnconfigure(1, weight=1)
         main_frame.rowconfigure(0, weight=1)
 
-        # Text Editor (Left Side)
+        # Text Editor
         editor_frame = tk.Frame(main_frame)
-        editor_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))  # Padding between editor and tokens
+        editor_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))  
 
         editor_label = tk.Label(editor_frame, text="Text Editor", font=('Georgia', 12, 'bold'))
         editor_label.pack()
@@ -71,7 +70,7 @@ class CMSC124Project:
 
         self.editor_text.config(yscrollcommand=editor_scrollbar.set)
 
-        # Lexeme Table (Middle Right)
+        # Lexeme Table 
         lexeme_frame = tk.Frame(main_frame)
         lexeme_frame.grid(row=0, column=1, sticky="nsew")
 
@@ -90,7 +89,7 @@ class CMSC124Project:
 
         self.tokens_table.config(yscrollcommand=tokens_scrollbar.set)
 
-        # Symbol Table (Far Right)
+        # Symbol Table 
         symbol_frame = tk.Frame(main_frame)
         symbol_frame.grid(row=0, column=2, sticky="nsew")
 
@@ -109,19 +108,19 @@ class CMSC124Project:
 
         self.symbol_table.config(yscrollcommand=symbol_scrollbar.set)
 
-        # Console Text Box Below the Execute Button
+        # Console 
         self.console_text = tk.Text(self.root, wrap=tk.WORD, font=('Courier New', 10), height=8)
         self.console_text.pack(side=tk.BOTTOM, fill=tk.BOTH, padx=10, pady=5)
         self.console_text.config(state=tk.NORMAL)
         self.console_text.insert(tk.END, "Console Output:\n")
         self.console_text.config(state=tk.DISABLED)
 
-        # Add the Execute button below the main frame
+        # Execute button
         self.execute_button = tk.Button(self.root, text="EXECUTE", font=('Georgia', 12, 'bold'), command=self.execute)
         self.execute_button.pack(side=tk.BOTTOM, pady=10)
 
     def select_file(self):
-        current_working_dir = os.getcwd()  # Get the current working directory
+        current_working_dir = os.getcwd()           # Get the current working directory
         self.file_path = filedialog.askopenfilename(initialdir=current_working_dir, filetypes=[("LOLCode files", "*.lol")])
 
         if self.file_path:
@@ -143,25 +142,24 @@ class CMSC124Project:
             for item in self.symbol_table.get_children():
                 self.symbol_table.delete(item)
 
-            # Populate the lexeme table
+            # Fill the lexeme table
             for token, lexeme in zip(tokens, lexemes):
                 if token not in {'COMMENT_START', 'COMMENT', 'NEWLINE'}:
                     self.tokens_table.insert("", tk.END, values=(lexeme, token))
 
-            # Populate the symbol table
+            # Fill the symbol table
             for symbol in set(lexemes):  
                 self.symbol_table.insert("", tk.END, values=(symbol, "Value"))
 
             # Display console output
             self.console_text.config(state=tk.NORMAL)
             self.console_text.delete(1.0, tk.END)
-            self.console_text.insert(tk.END, "Execution Completed.\n")
+            self.console_text.insert(tk.END, "Done.\n")
             self.console_text.config(state=tk.DISABLED)
 
             new_dictionary = dict(zip(lexemes,tokens))
 
             final_tokens = {key: value for key, value in new_dictionary.items() if value not in ['COMMENT_START', 'COMMENT', 'NEWLINE']}
-
             print(final_tokens)
 
             # Perform syntax analysis
@@ -171,7 +169,7 @@ class CMSC124Project:
         else:
             self.console_text.config(state=tk.NORMAL)
             self.console_text.delete(1.0, tk.END)
-            self.console_text.insert(tk.END, "No content in the editor! Please enter some code.\n")
+            self.console_text.insert(tk.END, "Enter something in the text editor.\n")
             self.console_text.config(state=tk.DISABLED)
 
     def display_editor_content(self, content):
@@ -179,7 +177,6 @@ class CMSC124Project:
         self.editor_text.insert(tk.END, content)
 
     def display_output(self, output):
-        # Display output in the console text box if needed
         self.console_text.config(state=tk.NORMAL)
         self.console_text.delete(1.0, tk.END)
         self.console_text.insert(tk.END, output)
