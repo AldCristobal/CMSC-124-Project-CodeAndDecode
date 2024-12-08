@@ -1,6 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import ttk
 import SyntaxAnalyzer
 import LexicalAnalyzer
 
@@ -21,8 +22,8 @@ class CMSC124Project:
 
         # Set fixed window size
         self.root.geometry("800x600")
-        self.root.resizable(False, False)  # Disable resizing
-
+        self.root.resizable(True, True)  
+        
         self.file_path = None  # Initialize file path as None
 
         self.create_widgets()
@@ -54,7 +55,7 @@ class CMSC124Project:
         editor_frame = tk.Frame(main_frame)
         editor_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))  # Padding between editor and tokens
 
-        self.editor_text = tk.Text(editor_frame, wrap=tk.WORD, font=('Courier New', 10), height=10)
+        self.editor_text = tk.Text(editor_frame, wrap=tk.WORD, font=('Courier New', 10), height=10, width=15)
         self.editor_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         editor_scrollbar = tk.Scrollbar(editor_frame, orient=tk.VERTICAL, command=self.editor_text.yview)
@@ -62,17 +63,21 @@ class CMSC124Project:
 
         self.editor_text.config(yscrollcommand=editor_scrollbar.set)
 
-        # Tokens Output (Right Side)
+        # Tokens Output (Right Side) - Table View
         tokens_frame = tk.Frame(main_frame)
         tokens_frame.grid(row=0, column=1, sticky="nsew")
 
-        self.output_text = tk.Text(tokens_frame, wrap=tk.WORD, font=('Arial', 10), state=tk.DISABLED, height=10)
-        self.output_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.tokens_table = ttk.Treeview(tokens_frame, columns=("Lexeme", "Classification"), show="headings")
+        self.tokens_table.heading("Lexeme", text="Lexeme")
+        self.tokens_table.heading("Classification", text="Classification")
+        self.tokens_table.column("Lexeme", width=100, anchor="w")
+        self.tokens_table.column("Classification", width=100, anchor="w")
+        self.tokens_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        tokens_scrollbar = tk.Scrollbar(tokens_frame, orient=tk.VERTICAL, command=self.output_text.yview)
+        tokens_scrollbar = tk.Scrollbar(tokens_frame, orient=tk.VERTICAL, command=self.tokens_table.yview)
         tokens_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.output_text.config(yscrollcommand=tokens_scrollbar.set)
+        self.tokens_table.config(yscrollcommand=tokens_scrollbar.set)
 
         # Add the Execute button below the main frame
         self.execute_button = tk.Button(self.root, text="EXECUTE", command=self.execute)
@@ -95,13 +100,14 @@ class CMSC124Project:
             # Perform lexical analysis
             tokens, lexemes, rows, columns = LexicalAnalyzer.LexicalAnalyzer().gen_tokens(file_content)
 
-            output = "LEXEME : CLASSIFICATION\n"
-            for token, lexeme, row, col in zip(tokens, lexemes, rows, columns):
-                if token not in {'COMMENT_START', 'COMMENT', 'NEWLINE'}:
-                    output += f"{lexeme} : {token}\n"
+            # Clear previous entries in the table
+            for item in self.tokens_table.get_children():
+                self.tokens_table.delete(item)
 
-            # Display the tokens in the output area
-            self.display_output(output)
+            # Populate the table with the new data
+            for token, lexeme in zip(tokens, lexemes):
+                if token not in {'COMMENT_START', 'COMMENT', 'NEWLINE'}:
+                    self.tokens_table.insert("", tk.END, values=(lexeme, token))
 
             # Perform syntax analysis
             SyntaxAnalyzer.SyntaxAnalyzer().check_syntax(tokens, rows, columns)
@@ -114,10 +120,8 @@ class CMSC124Project:
         self.editor_text.insert(tk.END, content)
 
     def display_output(self, output):
-        self.output_text.config(state=tk.NORMAL)
-        self.output_text.delete(1.0, tk.END)
-        self.output_text.insert(tk.END, output)
-        self.output_text.config(state=tk.DISABLED)
+        # Display output in a dialog box or another widget if needed
+        pass
 
 
 # Create and run the app
