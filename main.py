@@ -55,7 +55,10 @@ class CMSC124Project:
         editor_frame = tk.Frame(main_frame)
         editor_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))  # Padding between editor and tokens
 
-        self.editor_text = tk.Text(editor_frame, wrap=tk.WORD, font=('Courier New', 10), height=10, width=20)
+        editor_label = tk.Label(editor_frame, text="Text Editor", font=('Helvetica', 12, 'bold'))
+        editor_label.pack()
+
+        self.editor_text = tk.Text(editor_frame, wrap=tk.WORD, font=('Courier New', 10), height=10, width=25)
         self.editor_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         editor_scrollbar = tk.Scrollbar(editor_frame, orient=tk.VERTICAL, command=self.editor_text.yview)
