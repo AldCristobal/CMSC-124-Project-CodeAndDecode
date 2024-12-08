@@ -54,8 +54,17 @@ class SyntaxAnalyzer:
                 return self.parse_expr()
         elif self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF"}:
             return self.parse_math_expr()
+        elif self.current_token() == "GIMMEH":
+            return self.parse_input()
         else:
             raise SyntaxError(f"Unexpected statement: {self.current_token()}")
+
+    def parse_input(self):
+        """<input> ::= GIMMEH varident"""
+        self.expect("GIMMEH")
+        identifier = self.current_token()
+        self.expect_identifier()
+        return {"type": "input", "name": identifier}
 
     def parse_print(self):
         """<print> ::= VISIBLE <generic_operand>"""
