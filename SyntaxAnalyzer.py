@@ -50,6 +50,8 @@ class SyntaxAnalyzer:
         elif self.current_type() == "Identifier":
             if self.index + 1 < len(self.keys) and self.keys[self.index + 1] == "R":
                 return self.parse_assignment()
+            elif self.index + 1 < len(self.keys) and self.keys[self.index + 1] == "IS NOW A":
+                return self.parse_recast()
             else:
                 return self.parse_expr()
         elif self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF"}:
@@ -58,6 +60,27 @@ class SyntaxAnalyzer:
             return self.parse_input()
         else:
             raise SyntaxError(f"Unexpected statement: {self.current_token()}")
+
+    def parse_typecast(self):
+        """<typecast> ::= MAEK <datatype> <generic_operand>"""
+        self.expect("MAEK")
+        operand = self.parse_generic_operand()
+        datatype = self.current_token()
+        if self.current_type() != "Datatype Keyword":
+            raise SyntaxError(f"Expected datatype, but got '{self.current_token()}'")
+        self.advance()
+        return {"type": "typecast", "datatype": datatype, "operand": operand}
+
+    def parse_recast(self):
+        """<recast> ::= varident IS NOW A <datatype>"""
+        identifier = self.current_token()
+        self.expect_identifier()
+        self.expect("IS NOW A")
+        datatype = self.current_token()
+        if self.current_type() != "Datatype Keyword":
+            raise SyntaxError(f"Expected datatype, but got '{self.current_token()}'")
+        self.advance()
+        return {"type": "recast", "name": identifier, "datatype": datatype}
 
     def parse_input(self):
         """<input> ::= GIMMEH varident"""
@@ -69,7 +92,14 @@ class SyntaxAnalyzer:
     def parse_print(self):
         """<print> ::= VISIBLE <generic_operand>"""
         self.expect("VISIBLE")
-        operand = self.parse_generic_operand()
+        operand = []
+        operand.append(self.parse_generic_operand())
+        while True:
+            if self.current_token() in {"+", "AN"}:
+                self.advance()
+                operand.append(self.parse_generic_operand())
+            else:
+                break
         return {"type": "print", "operand": operand}
 
     def parse_generic_operand(self):
@@ -78,8 +108,12 @@ class SyntaxAnalyzer:
             token = self.current_token()
             self.advance()
             return {"type": "literal" if self.current_type() == "Literal" else "identifier", "value": token}
-        elif self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF"}:
+        elif self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "MOD OF", "BIGGR OF", "SMALLR OF"}:
             return self.parse_math_expr()
+        elif self.current_token() == "SMOOSH":
+            return self.parse_smoosh_expr()
+        elif self.current_token() == "MAEK":
+            return self.parse_typecast()
         else:
             raise SyntaxError(f"Expected operand, but got '{self.current_token()}'")
 
@@ -118,18 +152,18 @@ class SyntaxAnalyzer:
 
     def parse_expr(self):
         """<expr> ::= <math_expr> | <bool_expr> | <smoosh_expr>"""
-        if self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "BIGGR OF", "SMALLR OF"}:
+        if self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "MOD OF", "BIGGR OF", "SMALLR OF"}:
             return self.parse_math_expr()
         elif self.current_token() in {"BOTH OF", "EITHER OF", "WON OF", "BOTH SAEM", "DIFFRINT", "NOT"}:
             return self.parse_bool_expr()
-        elif self.current_token() == "SMOOSH":
-            return self.parse_smoosh_expr()
+        # elif self.current_token() == "SMOOSH":
+        #     return self.parse_smoosh_expr()
         else:
             raise SyntaxError(f"Unexpected expression: {self.current_token()}")
 
     def parse_math_expr(self):
         """<math_expr> ::= <math_operand> | <math_operator> <math_expr> AN <math_operand>"""
-        if self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "BIGGR OF", "SMALLR OF"}:
+        if self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "MOD OF", "BIGGR OF", "SMALLR OF"}:
             operator = self.current_token()
             self.advance()
             left_operand = self.parse_math_expr()
@@ -145,7 +179,7 @@ class SyntaxAnalyzer:
             token = self.current_token()
             self.advance()
             return {"type": "literal" if self.current_type() == "Literal" else "identifier", "value": token}
-        elif self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF"}:
+        elif self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "MOD OF", "BIGGR OF", "SMALLR OF"}:
             return self.parse_math_expr()
         else:
             raise SyntaxError(f"Expected math operand, but got '{self.current_token()}'")
@@ -158,12 +192,15 @@ class SyntaxAnalyzer:
     def parse_smoosh_expr(self):
         """<smoosh_expr> ::= SMOOSH <generic_operand> AN <more_smoosh>"""
         self.expect("SMOOSH")
-        operand = self.parse_generic_operand()
-        if self.current_token() == "AN":
-            self.advance()
-            more_operands = self.parse_smoosh_expr()
-            return {"type": "smoosh_expr", "parts": [operand, *more_operands]}
-        return {"type": "smoosh_expr", "parts": [operand]}
+        operand = []
+        operand.append(self.parse_generic_operand())
+        while True:
+            if self.current_token() == "AN":
+                self.advance()
+                operand.append(self.parse_generic_operand())
+            else:
+                break
+        return {"type": "smoosh_expr", "parts": operand}
 
     def expect_identifier(self):
         """Expect an identifier."""
