@@ -23,6 +23,8 @@ class CMSC124Project:
         self.root.geometry("800x600")
         self.root.resizable(False, False)  # Disable resizing
 
+        self.file_path = None  # Initialize file path as None
+
         self.create_widgets()
 
     def create_widgets(self):
@@ -52,7 +54,7 @@ class CMSC124Project:
         editor_frame = tk.Frame(main_frame)
         editor_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))  # Padding between editor and tokens
 
-        self.editor_text = tk.Text(editor_frame, wrap=tk.WORD, font=('Courier New', 12))
+        self.editor_text = tk.Text(editor_frame, wrap=tk.WORD, font=('Courier New', 10), height=10)
         self.editor_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         editor_scrollbar = tk.Scrollbar(editor_frame, orient=tk.VERTICAL, command=self.editor_text.yview)
@@ -64,7 +66,7 @@ class CMSC124Project:
         tokens_frame = tk.Frame(main_frame)
         tokens_frame.grid(row=0, column=1, sticky="nsew")
 
-        self.output_text = tk.Text(tokens_frame, wrap=tk.WORD, font=('Helvetica', 12), state=tk.DISABLED)
+        self.output_text = tk.Text(tokens_frame, wrap=tk.WORD, font=('Arial', 10), state=tk.DISABLED, height=10)
         self.output_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         tokens_scrollbar = tk.Scrollbar(tokens_frame, orient=tk.VERTICAL, command=self.output_text.yview)
@@ -72,16 +74,25 @@ class CMSC124Project:
 
         self.output_text.config(yscrollcommand=tokens_scrollbar.set)
 
+        # Add the Execute button below the main frame
+        self.execute_button = tk.Button(self.root, text="EXECUTE", command=self.execute)
+        self.execute_button.pack(side=tk.BOTTOM, pady=10)
+
     def select_file(self):
         current_working_dir = os.getcwd()  # Get the current working directory
-        file_path = filedialog.askopenfilename(initialdir=current_working_dir, filetypes=[("LOLCode files", "*.lol")])
+        self.file_path = filedialog.askopenfilename(initialdir=current_working_dir, filetypes=[("LOLCode files", "*.lol")])
 
-        if file_path:
-            # Read the file and display in the text editor
-            file_content = Reader(file_path).read()
+        if self.file_path:
+            # Read the file and display its content in the editor
+            file_content = Reader(self.file_path).read()
             self.display_editor_content(file_content)
 
-            # Generate tokens and display in the output area
+    def execute(self):
+        if self.file_path:
+            # Read content from the editor (in case it's modified)
+            file_content = self.editor_text.get("1.0", tk.END).strip()
+
+            # Perform lexical analysis
             tokens, lexemes, rows, columns = LexicalAnalyzer.LexicalAnalyzer().gen_tokens(file_content)
 
             output = "LEXEME : CLASSIFICATION\n"
@@ -89,10 +100,14 @@ class CMSC124Project:
                 if token not in {'COMMENT_START', 'COMMENT', 'NEWLINE'}:
                     output += f"{lexeme} : {token}\n"
 
+            # Display the tokens in the output area
             self.display_output(output)
 
             # Perform syntax analysis
             SyntaxAnalyzer.SyntaxAnalyzer().check_syntax(tokens, rows, columns)
+
+        else:
+            self.display_output("No file selected! Please select a file first.")
 
     def display_editor_content(self, content):
         self.editor_text.delete(1.0, tk.END)
