@@ -159,7 +159,6 @@ class CMSC124Project:
             self.console_text.config(state=tk.DISABLED)
 
             # Perform syntax analysis
-            SyntaxAnalyzer.SyntaxAnalyzer().check_syntax(tokens, rows, columns)
 
         else:
             self.console_text.config(state=tk.NORMAL)

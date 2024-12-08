@@ -8,33 +8,6 @@ class LexicalAnalyzer:
         self.columns = []
         self.lin_num = 1
         self.lin_start = 0
-
-        # Classifications using lists of token names
-        self.token_classifications = {
-            "Code Delimiter": ["START", "END"],
-            "Var. Dec. List Delimiter": ["VAR_INIT_START", "VAR_INIT_END"],
-            "Variable Declaration": ["VAR_INIT"],
-            "Comment": ["COMMENT_START", "MULTILINE_COMMENT_START", "MULTILINE_COMMENT_END"],
-            "Variable Assignment": ["VAR_INIT_VALUE", "ASSIGNMENT"],
-            "Math Operator": ["ARITHMETIC_OPERATOR"],
-            "Boolean Operator": ["BOOL_OPERATOR"],
-            "Concatenation": ["CONCAT"],
-            "Typecast": ["TYPECAST", "RECAST"],
-            "Output Keyword": ["PRINT"],
-            "Input Keyword": ["INPUT"],
-            "If-then Keyword": ["IF_THEN", "IF", "ELIF", "ELSE", "IFSWITCH_END"],
-            "Switch-case Keyword": ["SWITCH", "CASE", "CASE_END"],
-            "Loop Keyword": ["LOOP_START", "LOOP_END", "LOOP_ITERATOR", "LOOPFUNC_PARAM", "LOOP_BOOL"],
-            "Function Keyword": ["FUNC_START", "FUNC_END", "FUNC_RETURN_START", "FUNC_RETURN_END", "FUNC_CALL_START", "FUNC_CALL_END"],
-            "Datatype Keyword": ["DATA_TYPE"],
-            "Literal": ["TROOF", "NUMBAR", "NUMBR", "YARN"],
-            "Identifier": ["VARIABLE"],
-            "Whitespace": ["NEWLINE", "TAB", "WHITESPACE"],
-            "Print Add Arity": ["PRINT_ADD_ARITY"],
-            "Unrecognized": ["UNRECOGNIZED"]
-        }
-
-        # Token recognition patterns
         self.rules = [
             ("START", r"HAI"),
             ("END", r"KTHXBYE"),
@@ -91,57 +64,70 @@ class LexicalAnalyzer:
         self.rows.clear()
         self.columns.clear()
         
-        token_rules = "|".join(f"(?P<{name}>{pattern})" for name, pattern in self.rules)
-        comment_flag = False
-        multi_comment_flag  = False
+        token_rules = "|".join(f"(?P<{x[0]}>{x[1]})" for x in self.rules)
+
+        comment_bool = False
+        multi_comment_bool = False
         comment = ""
         comment_column = 0
 
-        for match in re.finditer(token_rules, code):
-            token_type = match.lastgroup
-            token_lexeme = match.group()
-            col = match.start() - self.lin_start
+        for m in re.finditer(token_rules, code):
+            token_type = m.lastgroup
+            token_lexeme = m.group(token_type)
 
+            # print(token_lexeme, token_type)
             if token_type == "NEWLINE":
-                if comment_flag:
-                    if not multi_comment_flag:
-                        comment_flag = False
-                    if comment:
+                if comment_bool:
+                    if not multi_comment_bool:
+                        comment_bool = False
+                    if comment != '':
+                        col = m.start() - self.lin_start
                         self.columns.append(comment_column)
-                        self.tokens.append("COMMENT")
+                        self.tokens.append("COMMENT")	
                         self.lexemes.append(comment)
                         self.rows.append(self.lin_num)
-                        comment, comment_column = "", 0
+                        comment = ""
+                        comment_column = 0
+                col = m.start() - self.lin_start
                 self.columns.append(col)
                 self.tokens.append(token_type)
                 self.lexemes.append("\\n")
                 self.rows.append(self.lin_num)
-                self.lin_start = match.end()
+                self.lin_start = m.end()
                 self.lin_num += 1
             elif token_type == "MULTILINE_COMMENT_END":
-                comment_flag, multi_comment_flag = False, False
+                comment_bool = False
+                multi_comment_bool = False
+                col = m.start() - self.lin_start
                 self.columns.append(col)
                 self.tokens.append(token_type)
                 self.lexemes.append(token_lexeme)
                 self.rows.append(self.lin_num)
-            elif comment_flag:
+            elif comment_bool:
                 comment += token_lexeme
-            elif token_type in ("COMMENT_START", "MULTILINE_COMMENT_START"):
-                comment_flag = True
+            elif token_type == "COMMENT_START" or token_type == "MULTILINE_COMMENT_START":
+                comment_bool = True
                 if token_type == "MULTILINE_COMMENT_START":
-                    multi_comment_flag = True
+                    multi_comment_bool = True
+                
+                col = m.start() - self.lin_start
+                comment_column = col+1
+
                 self.columns.append(col)
-                comment_column = col + 1
                 self.tokens.append(token_type)
                 self.lexemes.append(token_lexeme)
                 self.rows.append(self.lin_num)
-            elif token_type not in ("TAB", "WHITESPACE"):
+            elif token_type in ("TAB", "WHITESPACE"):
+                continue
+            # elif token_type == "UNRECOGNIZED":
+            #     error = f"ERROR: {token_lexeme[0]} unexpected on line {self.lin_num}"
+            #     return False, error, False, False
+            else:
+    
+                col = m.start() - self.lin_start
                 self.columns.append(col)
-                # Classify the token type by looking up in the lists
-                classification = next((key for key, value in self.token_classifications.items() if token_type in value), "Unclassified")
-                self.tokens.append(classification)
+                self.tokens.append(token_type)
                 self.lexemes.append(token_lexeme)
                 self.rows.append(self.lin_num)
-                print(f"Token: {token_lexeme}, Type: {token_type}, Classification: {classification}")
-
+        # print(self.tokens)
         return self.tokens, self.lexemes, self.rows, self.columns
