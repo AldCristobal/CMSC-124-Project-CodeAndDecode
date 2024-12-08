@@ -1,8 +1,8 @@
 class SyntaxAnalyzer:
-    def __init__(self, tokens):
-        self.tokens = tokens  # Dictionary of tokens
-        self.keys = list(tokens.keys())  # Token keys (lexemes)
-        self.types = list(tokens.values())  # Corresponding types
+    def __init__(self, token_list):
+        self.tokens = token_list                                        # example [{'HAI': 'Code Delimiter'}, {'VISIBLE': 'Output Keyword'}, {'8': 'Literal'}, {'VISIBLE': 'Output Keyword'}, {'5': 'Literal'}, {'KTHXBYE': 'Code Delimiter'}]
+        self.keys = [list(token.keys())[0] for token in token_list]     
+        self.types = [list(token.values())[0] for token in token_list]  
         self.index = 0
 
     def current_token(self):
@@ -25,23 +25,17 @@ class SyntaxAnalyzer:
             raise SyntaxError(f"Expected '{expected_token}', but got '{self.current_token()}'")
 
     def parse_program(self):
-        """<program> ::= HAI <linebreak> <statement> <linebreak> KTHXBYE"""
-        self.expect("HAI")  # Code Delimiter
-        self.parse_linebreak()
+        """<program> ::= HAI <statement_list> KTHXBYE"""
+        self.expect("HAI")
         self.parse_statement_list()
-        self.parse_linebreak()
-        self.expect("KTHXBYE")  # Code Delimiter
-
-    def parse_linebreak(self):
-        """Allow linebreaks (for simplicity)."""
-        while self.current_type() == "NEWLINE":
-            self.advance()
+        self.expect("KTHXBYE")
 
     def parse_statement_list(self):
-        """Parse a recursive list of statements."""
-        while self.current_token() not in {"KTHXBYE", None}:
+        """Parse a list of statements, separated by logical delimiters."""
+        while self.current_token() and self.current_token() not in {"KTHXBYE", "BUHBYE"}:
             self.parse_statement()
-            self.parse_linebreak()
+            if self.current_token() in {"BUHBYE", "KTHXBYE"}:
+                break  # End of the block or program
 
     def parse_statement(self):
         """Parse a single statement."""
@@ -50,8 +44,10 @@ class SyntaxAnalyzer:
         elif self.current_token() == "WAZZUP":
             self.parse_var_dec_list()
         elif self.current_type() == "Identifier":
-            if self.keys[self.index + 1] == "R":
+            if self.index + 1 < len(self.keys) and self.keys[self.index + 1] == "R":
                 self.parse_assignment()
+            else:
+                self.parse_expr()
         elif self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF"}:
             self.parse_math_expr()
         else:
@@ -72,24 +68,20 @@ class SyntaxAnalyzer:
             raise SyntaxError(f"Expected operand, but got '{self.current_token()}'")
 
     def parse_var_dec_list(self):
-        """<var_dec_list> ::= <var_dec> | <var_dec> <linebreak> <var_dec_list>"""
-        self.expect("WAZZUP")  # Var. Dec. List Delimiter
-        while self.current_token() != "BUHBYE":  # Var. Dec. List Delimiter
+        """<var_dec_list> ::= <var_dec> | <var_dec> <var_dec_list>"""
+        self.expect("WAZZUP")
+        while self.current_token() != "BUHBYE":
             self.parse_var_dec()
-            self.parse_linebreak()
-        self.expect("BUHBYE")
+            if self.current_token() == "BUHBYE":
+                break  # End of the var declaration block
 
     def parse_var_dec(self):
         """<var_dec> ::= I HAS A varident | I HAS A varident ITZ <generic_operand>"""
-        print(f"Parsing variable declaration at token: {self.current_token()}")
-        self.expect("I HAS A")  # Expect 'I HAS A'
-        self.expect_identifier()  # Expect a variable identifier
-        if self.current_token() == "ITZ":  # Optional ITZ clause
-            print(f"Found ITZ at token: {self.current_token()}")
+        self.expect("I HAS A")
+        self.expect_identifier()
+        if self.current_token() == "ITZ":
             self.expect("ITZ")
             self.parse_generic_operand()
-        print("Finished parsing variable declaration.")
-
 
     def parse_assignment(self):
         """<assignment> ::= varident R <generic_operand>"""
@@ -97,19 +89,23 @@ class SyntaxAnalyzer:
         self.expect("R")
         self.parse_generic_operand()
 
+    def parse_expr(self):
+        """<expr> ::= <math_expr> | <bool_expr> | <smoosh_expr>"""
+        if self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "BIGGR OF", "SMALLR OF"}:
+            self.parse_math_expr()
+        elif self.current_token() in {"BOTH OF", "EITHER OF", "WON OF", "BOTH SAEM", "DIFFRINT", "NOT"}:
+            self.parse_bool_expr()
+        elif self.current_token() == "SMOOSH":
+            self.parse_smoosh_expr()
+        else:
+            raise SyntaxError(f"Unexpected expression: {self.current_token()}")
+
     def parse_math_expr(self):
         """<math_expr> ::= <math_operand> | <math_operator> <math_expr> AN <math_operand>"""
-        self.parse_math_operator()
         self.parse_math_operand()
-        self.expect("AN")
-        self.parse_math_operand()
-
-    def parse_math_operator(self):
-        """<math_operator> ::= SUM OF | DIFF OF | PRODUKT OF | QUOSHUNT OF"""
-        if self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF"}:
-            self.advance()
-        else:
-            raise SyntaxError(f"Expected math operator, but got '{self.current_token()}'")
+        if self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "BIGGR OF", "SMALLR OF"}:
+            self.parse_math_operator()
+            self.parse_math_expr()
 
     def parse_math_operand(self):
         """<math_operand> ::= numbr | numbar | varident | <math_expr>"""
@@ -119,6 +115,26 @@ class SyntaxAnalyzer:
             self.parse_math_expr()
         else:
             raise SyntaxError(f"Expected math operand, but got '{self.current_token()}'")
+
+    def parse_math_operator(self):
+        """<math_operator> ::= SUM OF | DIFF OF | PRODUKT OF | QUOSHUNT OF"""
+        if self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF"}:
+            self.advance()
+        else:
+            raise SyntaxError(f"Expected math operator, but got '{self.current_token()}'")
+
+    def parse_bool_expr(self):
+        """<bool_expr> ::= NOT <bool_operand> | <bool_operator> <bool_operand> AN <bool_operand>"""
+        # Placeholder, extend as needed
+        pass
+
+    def parse_smoosh_expr(self):
+        """<smoosh_expr> ::= SMOOSH <generic_operand> AN <more_smoosh>"""
+        self.expect("SMOOSH")
+        self.parse_generic_operand()
+        if self.current_token() == "AN":
+            self.advance()
+            self.parse_smoosh_expr()
 
     def expect_identifier(self):
         """Expect an identifier."""
@@ -134,4 +150,3 @@ class SyntaxAnalyzer:
             print("Syntax analysis completed successfully!")
         except SyntaxError as e:
             print(f"Syntax error: {e}")
-

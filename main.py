@@ -157,9 +157,13 @@ class CMSC124Project:
             self.console_text.insert(tk.END, "Done.\n")
             self.console_text.config(state=tk.DISABLED)
 
-            new_dictionary = dict(zip(lexemes,tokens))
+            indices_to_remove = [i for i, value in enumerate(tokens) if value in ['COMMENT_START', 'COMMENT', 'NEWLINE']]
 
-            final_tokens = {key: value for key, value in new_dictionary.items() if value not in ['COMMENT_START', 'COMMENT', 'NEWLINE']}
+            for index in sorted(indices_to_remove, reverse=True):
+                lexemes.pop(index)
+                tokens.pop(index)
+
+            final_tokens = [{lexemes[i]: tokens[i]} for i in range(len(lexemes))]
             print(final_tokens)
 
             # Perform syntax analysis
