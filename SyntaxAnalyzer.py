@@ -34,9 +34,9 @@ class SyntaxAnalyzer:
     def parse_statement_list(self):
         """Parse a list of statements, separated by logical delimiters."""
         statements = []
-        while self.current_token() and self.current_token() not in {"KTHXBYE", "BUHBYE"}:
+        while self.current_token() and self.current_token() not in {"KTHXBYE"}:
             statements.append(self.parse_statement())
-            if self.current_token() in {"BUHBYE", "KTHXBYE"}:
+            if self.current_token() in {"KTHXBYE"}:
                 break  # End of the block or program
         return statements
 
@@ -80,6 +80,7 @@ class SyntaxAnalyzer:
         while self.current_token() != "BUHBYE":
             var_declarations.append(self.parse_var_dec())
             if self.current_token() == "BUHBYE":
+                self.advance()
                 break  # End of the var declaration block
         return {"type": "var_dec_list", "declarations": var_declarations}
 
