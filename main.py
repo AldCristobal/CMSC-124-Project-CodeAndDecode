@@ -33,14 +33,19 @@ class CMSC124Project:
         header_frame = tk.Frame(self.root)
         header_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
 
-        title_label = tk.Label(header_frame, text="LOLCode Interpreter", font=('Helvetica', 20, 'bold'))
+        title_label = tk.Label(header_frame, text="LOLCode Interpreter", font=('Georgia', 20, 'bold'))
         title_label.pack()
 
-        author_label = tk.Label(header_frame, text="Cristobal & Deocareza\nCMSC 124 ST-1L", font=('Helvetica', 14))
+        author_label = tk.Label(header_frame, text="Code & Decode | CMSC 124 ST-1L", font=('Georgia', 14))
         author_label.pack()
 
-        self.import_button = tk.Button(self.root, text="Select a LOLCode File", command=self.select_file)
+        self.import_button = tk.Button(self.root, text="File Explorer", font=('Georgia', 12, 'bold'), command=self.select_file)
         self.import_button.pack(side=tk.TOP, padx=10, pady=5)
+
+        # Create a style object for the Treeview
+        style = ttk.Style()
+        style.configure("Treeview.Heading", font=("Georgia", 10, "bold"))  # Set font for column headers
+        style.configure("Treeview", font=("Verdana", 10))  # Set font for Treeview content
 
         # Main Frame (Text Editor and Token Tables)
         main_frame = tk.Frame(self.root)
@@ -55,10 +60,10 @@ class CMSC124Project:
         editor_frame = tk.Frame(main_frame)
         editor_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))  # Padding between editor and tokens
 
-        editor_label = tk.Label(editor_frame, text="Text Editor", font=('Helvetica', 12, 'bold'))
+        editor_label = tk.Label(editor_frame, text="Text Editor", font=('Georgia', 12, 'bold'))
         editor_label.pack()
 
-        self.editor_text = tk.Text(editor_frame, wrap=tk.WORD, font=('Courier New', 10), height=10, width=25)
+        self.editor_text = tk.Text(editor_frame, wrap=tk.WORD, font=('Courier New', 10), height=10, width=30)
         self.editor_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         editor_scrollbar = tk.Scrollbar(editor_frame, orient=tk.VERTICAL, command=self.editor_text.yview)
@@ -70,14 +75,14 @@ class CMSC124Project:
         lexeme_frame = tk.Frame(main_frame)
         lexeme_frame.grid(row=0, column=1, sticky="nsew")
 
-        lexeme_label = tk.Label(lexeme_frame, text="Lexemes", font=('Helvetica', 12, 'bold'))
+        lexeme_label = tk.Label(lexeme_frame, text="Lexemes", font=('Georgia', 12, 'bold'))
         lexeme_label.pack()
 
         self.tokens_table = ttk.Treeview(lexeme_frame, columns=("Lexeme", "Classification"), show="headings")
         self.tokens_table.heading("Lexeme", text="Lexeme")
         self.tokens_table.heading("Classification", text="Classification")
-        self.tokens_table.column("Lexeme", width=150, anchor="w")
-        self.tokens_table.column("Classification", width=150, anchor="w")
+        self.tokens_table.column("Lexeme", width=100, anchor="w")
+        self.tokens_table.column("Classification", width=100, anchor="w")
         self.tokens_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         tokens_scrollbar = tk.Scrollbar(lexeme_frame, orient=tk.VERTICAL, command=self.tokens_table.yview)
@@ -89,14 +94,14 @@ class CMSC124Project:
         symbol_frame = tk.Frame(main_frame)
         symbol_frame.grid(row=0, column=2, sticky="nsew")
 
-        symbol_label = tk.Label(symbol_frame, text="Symbol Table", font=('Helvetica', 12, 'bold'))
+        symbol_label = tk.Label(symbol_frame, text="Symbol Table", font=('Georgia', 12, 'bold'))
         symbol_label.pack()
 
         self.symbol_table = ttk.Treeview(symbol_frame, columns=("Identifier", "Value"), show="headings")
         self.symbol_table.heading("Identifier", text="Identifier")
         self.symbol_table.heading("Value", text="Value")
-        self.symbol_table.column("Identifier", width=150, anchor="w")
-        self.symbol_table.column("Value", width=150, anchor="w")
+        self.symbol_table.column("Identifier", width=100, anchor="w")
+        self.symbol_table.column("Value", width=100, anchor="w")
         self.symbol_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         symbol_scrollbar = tk.Scrollbar(symbol_frame, orient=tk.VERTICAL, command=self.symbol_table.yview)
@@ -112,7 +117,7 @@ class CMSC124Project:
         self.console_text.config(state=tk.DISABLED)
 
         # Add the Execute button below the main frame
-        self.execute_button = tk.Button(self.root, text="EXECUTE", command=self.execute)
+        self.execute_button = tk.Button(self.root, text="EXECUTE", font=('Georgia', 12, 'bold'), command=self.execute)
         self.execute_button.pack(side=tk.BOTTOM, pady=10)
 
     def select_file(self):
