@@ -130,10 +130,10 @@ class CMSC124Project:
             self.display_editor_content(file_content)
 
     def execute(self):
-        if self.file_path:
-            # Read content from the editor (in case it's modified)
-            file_content = self.editor_text.get("1.0", tk.END).strip()
+        # Read the current content from the editor
+        file_content = self.editor_text.get("1.0", tk.END).strip()
 
+        if file_content:
             # Perform lexical analysis
             tokens, lexemes, rows, columns = LexicalAnalyzer.LexicalAnalyzer().gen_tokens(file_content)
 
@@ -164,7 +164,7 @@ class CMSC124Project:
         else:
             self.console_text.config(state=tk.NORMAL)
             self.console_text.delete(1.0, tk.END)
-            self.console_text.insert(tk.END, "No file selected! Please select a file first.\n")
+            self.console_text.insert(tk.END, "No content in the editor! Please enter some code.\n")
             self.console_text.config(state=tk.DISABLED)
 
     def display_editor_content(self, content):
