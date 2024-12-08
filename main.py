@@ -4,7 +4,7 @@ from tkinter import filedialog
 from tkinter import ttk
 import SyntaxAnalyzer
 import LexicalAnalyzer
-
+import SemanticAnalyzer
 
 class Reader:
     def __init__(self, path):
@@ -21,7 +21,7 @@ class CMSC124Project:
         self.root.title("CMSC 124 Project: LOLCode Interpreter")
 
         self.root.geometry("1000x750")
-        self.root.resizable(True, True)  
+        self.root.resizable(True, True)
 
         self.file_path = None  
 
@@ -43,8 +43,8 @@ class CMSC124Project:
 
         # Create Style for the Treeview
         style = ttk.Style()
-        style.configure("Treeview.Heading", font=("Georgia", 10, "bold"))  
-        style.configure("Treeview", font=("Verdana", 10))  
+        style.configure("Treeview.Heading", font=("Georgia", 10, "bold"))
+        style.configure("Treeview", font=("Verdana", 10))
 
         # Main Frame
         main_frame = tk.Frame(self.root)
@@ -53,11 +53,12 @@ class CMSC124Project:
         # Configure grid layout for even display
         main_frame.columnconfigure(0, weight=1)
         main_frame.columnconfigure(1, weight=1)
+        main_frame.columnconfigure(2, weight=1)
         main_frame.rowconfigure(0, weight=1)
 
         # Text Editor
         editor_frame = tk.Frame(main_frame)
-        editor_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))  
+        editor_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
 
         editor_label = tk.Label(editor_frame, text="Text Editor", font=('Georgia', 12, 'bold'))
         editor_label.pack()
@@ -70,7 +71,7 @@ class CMSC124Project:
 
         self.editor_text.config(yscrollcommand=editor_scrollbar.set)
 
-        # Lexeme Table 
+        # Lexeme Table
         lexeme_frame = tk.Frame(main_frame)
         lexeme_frame.grid(row=0, column=1, sticky="nsew")
 
@@ -89,7 +90,7 @@ class CMSC124Project:
 
         self.tokens_table.config(yscrollcommand=tokens_scrollbar.set)
 
-        # Symbol Table 
+        # Symbol Table
         symbol_frame = tk.Frame(main_frame)
         symbol_frame.grid(row=0, column=2, sticky="nsew")
 
@@ -108,7 +109,7 @@ class CMSC124Project:
 
         self.symbol_table.config(yscrollcommand=symbol_scrollbar.set)
 
-        # Console 
+        # Console
         self.console_text = tk.Text(self.root, wrap=tk.WORD, font=('Courier New', 10), height=8)
         self.console_text.pack(side=tk.BOTTOM, fill=tk.BOTH, padx=10, pady=5)
         self.console_text.config(state=tk.NORMAL)
@@ -120,7 +121,7 @@ class CMSC124Project:
         self.execute_button.pack(side=tk.BOTTOM, pady=10)
 
     def select_file(self):
-        current_working_dir = os.getcwd()           # Get the current working directory
+        current_working_dir = os.getcwd()  # Get the current working directory
         self.file_path = filedialog.askopenfilename(initialdir=current_working_dir, filetypes=[("LOLCode files", "*.lol")])
 
         if self.file_path:
@@ -147,10 +148,6 @@ class CMSC124Project:
                 if token not in {'COMMENT_START', 'COMMENT', 'NEWLINE'}:
                     self.tokens_table.insert("", tk.END, values=(lexeme, token))
 
-            # Fill the symbol table
-            for symbol in set(lexemes):  
-                self.symbol_table.insert("", tk.END, values=(symbol, "Value"))
-
             # Display console output
             self.console_text.config(state=tk.NORMAL)
             self.console_text.delete(1.0, tk.END)
@@ -164,17 +161,34 @@ class CMSC124Project:
                 tokens.pop(index)
 
             final_tokens = [{lexemes[i]: tokens[i]} for i in range(len(lexemes))]
-            print(final_tokens)
 
             # Perform syntax analysis
-            analyzer = SyntaxAnalyzer.SyntaxAnalyzer(final_tokens)
-            analyzer.analyze()
+            syntax_analyzer = SyntaxAnalyzer.SyntaxAnalyzer(final_tokens)
+            ast = syntax_analyzer.analyze()
+
+            if ast:
+                semantic_analyzer = SemanticAnalyzer.SemanticAnalyzer(ast)
+                semantic_analyzer.analyze()  # Start semantic analysis
+
+                # Update the symbol table with variables and their values
+                self.update_symbol_table(semantic_analyzer.symbol_table)
+
+            else:
+                self.console_text.config(state=tk.NORMAL)
+                self.console_text.delete(1.0, tk.END)
+                self.console_text.insert(tk.END, "Syntax analysis failed.\n")
+                self.console_text.config(state=tk.DISABLED)
 
         else:
             self.console_text.config(state=tk.NORMAL)
             self.console_text.delete(1.0, tk.END)
             self.console_text.insert(tk.END, "Enter something in the text editor.\n")
             self.console_text.config(state=tk.DISABLED)
+
+    def update_symbol_table(self, symbol_table):
+        """Update the symbol table UI with the variables and their values."""
+        for identifier, value in symbol_table.items():
+            self.symbol_table.insert("", tk.END, values=(identifier, value))
 
     def display_editor_content(self, content):
         self.editor_text.delete(1.0, tk.END)
