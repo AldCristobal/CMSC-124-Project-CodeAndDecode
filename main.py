@@ -158,7 +158,15 @@ class CMSC124Project:
             self.console_text.insert(tk.END, "Execution Completed.\n")
             self.console_text.config(state=tk.DISABLED)
 
+            new_dictionary = dict(zip(lexemes,tokens))
+
+            final_tokens = {key: value for key, value in new_dictionary.items() if value not in ['COMMENT_START', 'COMMENT', 'NEWLINE']}
+
+            print(final_tokens)
+
             # Perform syntax analysis
+            analyzer = SyntaxAnalyzer.SyntaxAnalyzer(final_tokens)
+            analyzer.analyze()
 
         else:
             self.console_text.config(state=tk.NORMAL)
