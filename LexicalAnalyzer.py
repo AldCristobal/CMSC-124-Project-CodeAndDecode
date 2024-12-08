@@ -31,6 +31,7 @@ class LexicalAnalyzer:
             "Identifier": ["VARIABLE"],
             "Whitespace": ["NEWLINE", "TAB", "WHITESPACE"],
             "Print Add Arity": ["PRINT_ADD_ARITY"],
+            "Add Arity": ["ADD_ARITY"],
             "Unrecognized": ["UNRECOGNIZED"]
         }
 
@@ -74,6 +75,7 @@ class LexicalAnalyzer:
             ("FUNC_CALL_END", r"MKAY"),
             ("DATA_TYPE", r"(NOOB|TROOF|NUMBAR|NUMBR|YARN)"),
             ("TROOF", r"(WIN|FAIL)"),
+            ("ADD_ARITY", r"AN"),
             ("NUMBAR", r"-?\d+\.\d+"),
             ("NUMBR", r"-?\d+"),
             ("YARN", r'"([^"]*)"'),

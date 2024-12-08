@@ -129,13 +129,15 @@ class SyntaxAnalyzer:
 
     def parse_math_expr(self):
         """<math_expr> ::= <math_operand> | <math_operator> <math_expr> AN <math_operand>"""
-        left_operand = self.parse_math_operand()
         if self.current_token() in {"SUM OF", "DIFF OF", "PRODUKT OF", "QUOSHUNT OF", "BIGGR OF", "SMALLR OF"}:
             operator = self.current_token()
             self.advance()
-            right_operand = self.parse_math_expr()
+            left_operand = self.parse_math_expr()
+            self.expect("AN")
+            right_operand = self.parse_math_operand()
             return {"type": "math_expr", "operator": operator, "left": left_operand, "right": right_operand}
-        return left_operand
+        else:
+            return self.parse_math_operand()
 
     def parse_math_operand(self):
         """<math_operand> ::= numbr | numbar | varident | <math_expr>"""
