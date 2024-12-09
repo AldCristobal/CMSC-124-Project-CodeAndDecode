@@ -167,8 +167,13 @@ class CMSC124Project:
             ast = syntax_analyzer.analyze()
 
             if ast:
-                semantic_analyzer = SemanticAnalyzer.SemanticAnalyzer(ast)
+                semantic_analyzer = SemanticAnalyzer.SemanticAnalyzer(ast, self.console_text)
                 semantic_analyzer.analyze()  # Start semantic analysis
+
+                # for console_output in semantic_analyzer.console:
+                #     self.console_text.config(state=tk.NORMAL)
+                #     self.console_text.insert(tk.END, console_output)
+                #     self.console_text.config(state=tk.DISABLED)
 
                 # Update the symbol table with variables and their values
                 self.update_symbol_table(semantic_analyzer.symbol_table)
@@ -181,7 +186,7 @@ class CMSC124Project:
 
             for console_output in syntax_analyzer.console:
                 self.console_text.config(state=tk.NORMAL)
-                self.console_text.insert(tk.END, console_output)
+                self.console_text.insert(tk.END, console_output+"\n")
                 self.console_text.config(state=tk.DISABLED)
 
         else:

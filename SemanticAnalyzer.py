@@ -1,9 +1,11 @@
 class SemanticAnalyzer:
-    def __init__(self, token_list):
+    def __init__(self, token_list, console_text):
         self.tokens = token_list
         print(self.tokens)
         self.symbol_table = {} 
         self.index = 0
+        self.console = []
+        self.console_text = console_text
 
     def current_token(self):
         """Get the current token."""
@@ -64,6 +66,10 @@ class SemanticAnalyzer:
         """Analyze print statements."""
         self.advance()  # Skip 'VISIBLE'
         self.analyze_expr()  # The expression inside the print must be valid
+        # self.console_text.config(state=tk.NORMAL)
+        # self.console_text.insert(tk.END, f"{self.current_token()}\n")
+        # self.console_text.config(state=tk.DISABLED)
+        # print("PRINT")
 
     def analyze_assignment(self):
         """Analyze assignments and ensure correct types."""
@@ -94,9 +100,10 @@ class SemanticAnalyzer:
     def analyze_program(self):
         """Analyze the whole program."""
         self.advance()  # Skip 'HAI'
+        # print(self.current_token())
         while self.current_token() and self.current_token().get("KTHXBYE") is None:
             self.analyze_statement()
-            if self.current_token().get("BUHBYE"):
+            if self.current_token().get("KTHXBYE"):
                 break  # End of the block or program
         if self.current_token() and self.current_token().get("KTHXBYE"):
             self.advance()  # Skip 'KTHXBYE'
@@ -108,4 +115,5 @@ class SemanticAnalyzer:
             print(self.symbol_table)
             print("Semantic analysis completed successfully!")
         except (SyntaxError, NameError) as e:
+            self.console.append(f"Semantic error: {e}")
             print(f"Semantic error: {e}")

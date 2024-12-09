@@ -100,6 +100,9 @@ class SyntaxAnalyzer:
                 operand.append(self.parse_generic_operand())
             else:
                 break
+        print(operand[0].get('value'))
+        self.console.append(str(operand[0].get('value')))
+        # self.console.append(" ".join(str(ele) for ele in operand[0].get('value')))
         return {"type": "print", "operand": operand}
 
     def parse_generic_operand(self):
